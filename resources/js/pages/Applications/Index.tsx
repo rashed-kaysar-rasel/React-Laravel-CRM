@@ -1,4 +1,6 @@
-import { Link } from '@inertiajs/react';
+import { Head, Link } from '@inertiajs/react';
+import { type BreadcrumbItem } from '@/types';
+import AppLayout from '@/layouts/app-layout';
 
 interface Application {
   id: number;
@@ -73,31 +75,41 @@ function Pagination({ links }: { links: PaginationLink[] }) {
     </nav>
   );
 }
+const breadcrumbs: BreadcrumbItem[] = [
+  {
+    title: 'Applications',
+    href: '/applications',
+  },
+];
 
 export default function Index({ apps, routes }: IndexProps) {
   return (
-    <div className="p-6">
-      <h1 className="text-xl font-bold mb-4">Applications</h1>
+    <AppLayout breadcrumbs={breadcrumbs}>
+      <Head title="Applications" />
+      <div className="p-6">
+        <h1 className="text-xl font-bold mb-4">Applications</h1>
 
-      <Link
-        href={routes.create}
-        className="px-3 py-2 bg-black text-white rounded"
-      >
-        + New
-      </Link>
+        <Link
+          href={routes.create}
+          className="px-3 py-2 bg-black text-white rounded"
+        >
+          + New
+        </Link>
 
-      <ul className="mt-4 space-y-2">
-        {apps.data.map((app) => (
-          <li key={app.id} className="border p-3 rounded">
-            {app.full_name} — {app.country} — {app.status}
-          </li>
-        ))}
-        {apps.data.length === 0 && (
-          <li className="text-sm text-gray-500">No applications found.</li>
-        )}
-      </ul>
+        <ul className="mt-4 space-y-2">
+          {apps.data.map((app) => (
+            <li key={app.id} className="border p-3 rounded">
+              {app.full_name} — {app.country} — {app.status}
+            </li>
+          ))}
+          {apps.data.length === 0 && (
+            <li className="text-sm text-gray-500">No applications found.</li>
+          )}
+        </ul>
 
-      <Pagination links={apps.links} />
-    </div>
+        <Pagination links={apps.links} />
+      </div>
+    </AppLayout>
+
   );
 }
