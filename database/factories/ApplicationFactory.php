@@ -18,6 +18,7 @@ class ApplicationFactory extends Factory
             'visa_type'   => $this->faker->randomElement($visaTypes),
             'travel_date' => $this->faker->dateTimeBetween('now', '+6 months'),
             'status'      => $this->faker->randomElement(['new', 'screening', 'submitted', 'decision']),
+            'notes'      => $this->faker->paragraph(),
             'created_at'  => now(),
             'updated_at'  => now(),
         ];

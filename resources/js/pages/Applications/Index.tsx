@@ -1,4 +1,4 @@
-import { Head, Link } from '@inertiajs/react';
+import { Head, Link, usePage } from '@inertiajs/react';
 import { type BreadcrumbItem } from '@/types';
 import AppLayout from '@/layouts/app-layout';
 
@@ -29,6 +29,10 @@ interface Paginated<T> {
 }
 
 interface IndexProps {
+  flash: {
+    success?: string;
+    error?: string;
+  };
   apps: Paginated<Application>;
   routes: {
     create: string;
@@ -83,12 +87,27 @@ const breadcrumbs: BreadcrumbItem[] = [
 ];
 
 export default function Index({ apps, routes }: IndexProps) {
+  const { props } = usePage();
+  const flash = props.flash;
+
   return (
     <AppLayout breadcrumbs={breadcrumbs}>
       <Head title="Applications" />
       <div className="p-6">
         <h1 className="text-xl font-bold mb-4">Applications</h1>
 
+        {/* Flash message */}
+        {flash?.success && (
+          <div className="mb-4 rounded bg-green-100 text-green-800 px-4 py-2 text-sm">
+            {flash.success}
+          </div>
+        )}
+        {flash?.error && (
+          <div className="mb-4 rounded bg-red-100 text-red-800 px-4 py-2 text-sm">
+            {flash.error}
+          </div>
+        )}
+        
         <Link
           href={routes.create}
           className="px-3 py-2 bg-black text-white rounded"

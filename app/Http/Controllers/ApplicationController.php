@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Inertia\Inertia;
 use App\Models\Application;
 use Illuminate\Http\Request;
+use App\Http\Requests\StoreApplicationRequest;
 
 class ApplicationController extends Controller
 {
@@ -28,16 +29,37 @@ class ApplicationController extends Controller
      */
     public function create()
     {
-        return Inertia::render('Applications/Create',[]);
+        // Optional: provide dropdown options from server
+        return Inertia::render('Applications/Create', [
+            'options' => [
+                'countries' => ['Thailand', 'Malaysia', 'Pakistan', 'India', 'Singapore'],
+                'visaTypes' => ['Tourist', 'Business', 'Student'],
+            ],
+            'routes' => [
+                'index' => route('applications.index'),
+                'store' => route('applications.store'),
+            ],
+        ]);
     }
 
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
+    public function store(StoreApplicationRequest $request)
     {
-        //
+        // Validated data is guaranteed here
+        $data = $request->validated();
+
+        // default status
+        $data['status'] = $data['status'] ?? 'new';
+
+        Application::create($data);
+
+        return redirect()
+            ->route('applications.index')
+            ->with('success', 'Application created.');
     }
+
 
     /**
      * Display the specified resource.

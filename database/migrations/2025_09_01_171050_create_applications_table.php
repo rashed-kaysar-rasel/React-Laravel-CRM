@@ -18,6 +18,7 @@ return new class extends Migration {
             $table->string('visa_type');
             $table->date('travel_date')->nullable();
             $table->string('status')->default('new');
+            $table->text('notes')->nullable();
             $table->timestamps();
         });
     }
