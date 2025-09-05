@@ -1,4 +1,17 @@
-import { Link, useForm } from '@inertiajs/react';
+import { Link, useForm, Head } from '@inertiajs/react';
+import { type BreadcrumbItem } from '@/types';
+import AppLayout from '@/layouts/app-layout';
+
+const breadcrumbs: BreadcrumbItem[] = [
+  {
+    title: 'Applications',
+    href: '/applications',
+  },
+  {
+    title: 'Edit Applications',
+    href: '/applications/edit',
+  },
+];
 
 interface Application {
     id: number;
@@ -42,7 +55,9 @@ export default function Edit({ application, options, routes }: EditProps) {
 
 
     return (
-        <div className="p-6 max-w-2xl">
+        <AppLayout breadcrumbs={breadcrumbs}>
+            <Head title="Edit Application" />
+                    <div className="p-6 max-w-2xl">
             <div className="flex items-center justify-between mb-4">
                 <h1 className="text-xl font-semibold">Edit Application</h1>
                 <Link href={routes.index} className="text-sm text-gray-600 hover:underline">
@@ -160,5 +175,7 @@ export default function Edit({ application, options, routes }: EditProps) {
                 </div>
             </form>
         </div>
+        </AppLayout>
+
     );
 }

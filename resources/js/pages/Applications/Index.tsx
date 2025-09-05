@@ -1,6 +1,10 @@
-import { Head, Link, usePage } from '@inertiajs/react';
+import { Head, Link, router, usePage } from '@inertiajs/react';
 import { type BreadcrumbItem } from '@/types';
 import AppLayout from '@/layouts/app-layout';
+import { Icon } from '@/components/icon';
+import { SquarePen, Trash } from 'lucide-react';
+import ConfirmDialog from '@/components/ConfirmDialog';
+import { useConfirm } from '@/hooks/useConfirm';
 
 interface Application {
   id: number;
@@ -90,6 +94,20 @@ export default function Index({ apps, routes }: IndexProps) {
   const { props } = usePage();
   const flash = props.flash;
 
+  const confirm = useConfirm();
+
+  const requestDelete = (id: number) => {
+    confirm.ask(id);
+  };
+
+  const performDelete = () => {
+    if (confirm.payload == null) return;
+    router.delete(routes.delete.replace(':id', String(confirm.payload)), {
+      preserveScroll: true,
+      onFinish: () => confirm.close(),
+    });
+  };
+
   return (
     <AppLayout breadcrumbs={breadcrumbs}>
       <Head title="Applications" />
@@ -107,7 +125,7 @@ export default function Index({ apps, routes }: IndexProps) {
             {flash.error}
           </div>
         )}
-        
+
         <Link
           href={routes.create}
           className="px-3 py-2 bg-black text-white rounded"
@@ -115,23 +133,69 @@ export default function Index({ apps, routes }: IndexProps) {
           + New
         </Link>
 
-        <ul className="mt-4 space-y-2">
-          {apps.data.map((app) => (
-            <li key={app.id} className="border p-3 rounded">
-              {app.full_name} — {app.country} — {app.status}
+        <div className="mt-4 overflow-x-auto">
+          <table className="min-w-full border rounded">
+            <thead>
+              <tr className="bg-gray-100 dark:bg-gray-800 text-left">
+                <th className="px-4 py-2 border-b text-gray-900 dark:text-gray-100">Full Name</th>
+                <th className="px-4 py-2 border-b text-gray-900 dark:text-gray-100">Passport No</th>
+                <th className="px-4 py-2 border-b text-gray-900 dark:text-gray-100">Country</th>
+                <th className="px-4 py-2 border-b text-gray-900 dark:text-gray-100">Visa Type</th>
+                <th className="px-4 py-2 border-b text-gray-900 dark:text-gray-100">Travel Date</th>
+                <th className="px-4 py-2 border-b text-gray-900 dark:text-gray-100">Status</th>
+                <th className="px-4 py-2 border-b text-gray-900 dark:text-gray-100">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {apps.data.length === 0 ? (
+                <tr>
+                  <td colSpan={7} className="px-4 py-3 text-center text-gray-500">
+                    No applications found.
+                  </td>
+                </tr>
+              ) : (
+                apps.data.map((app) => (
+                  <tr key={app.id} className="border-b">
+                    <td className="px-4 py-2">{app.full_name}</td>
+                    <td className="px-4 py-2">{app.passport_no}</td>
+                    <td className="px-4 py-2">{app.country}</td>
+                    <td className="px-4 py-2">{app.visa_type}</td>
+                    <td className="px-4 py-2">{app.travel_date || '-'}</td>
+                    <td className="px-4 py-2">{app.status}</td>
+                    <td className="px-4 py-2">
+                      <div className="flex items-center gap-3">
+                        <Link
+                          href={routes.edit.replace(':id', app.id.toString())}
+                          className="text-blue-600 hover:underline"
+                        >
+                          <Icon iconNode={SquarePen} className="h-5 w-5" />
+                        </Link>
+                        <button
+                          onClick={() => requestDelete(app.id)}
+                          className="text-sm text-red-600 hover:underline"
+                        >
+                          <Icon iconNode={Trash} className="h-5 w-5" />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
 
-              <Link
-                href={routes.edit.replace(':id', app.id.toString())}
-                className="ml-4 text-blue-600 hover:underline"
-              >
-                Edit
-              </Link>
-            </li>
-          ))}
-          {apps.data.length === 0 && (
-            <li className="text-sm text-gray-500">No applications found.</li>
-          )}
-        </ul>
+          {/* Reusable ConfirmDialog */}
+          <ConfirmDialog
+            open={confirm.open}
+            title="Delete application?"
+            description="This action cannot be undone."
+            confirmText="Delete"
+            cancelText="Cancel"
+            variant="danger"
+            onConfirm={performDelete}
+            onCancel={confirm.close}
+          />
+        </div>
 
         <Pagination links={apps.links} />
       </div>

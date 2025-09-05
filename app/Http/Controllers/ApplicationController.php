@@ -21,6 +21,7 @@ class ApplicationController extends Controller
             'routes' => [
                 'create' => route('applications.create'),
                 'edit' => route('applications.edit', ['application' => ':id']),
+                'delete' => route('applications.destroy', ['application' => ':id']),
             ],
         ]);
     }
