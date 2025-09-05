@@ -119,6 +119,13 @@ export default function Index({ apps, routes }: IndexProps) {
           {apps.data.map((app) => (
             <li key={app.id} className="border p-3 rounded">
               {app.full_name} — {app.country} — {app.status}
+
+              <Link
+                href={routes.edit.replace(':id', app.id.toString())}
+                className="ml-4 text-blue-600 hover:underline"
+              >
+                Edit
+              </Link>
             </li>
           ))}
           {apps.data.length === 0 && (

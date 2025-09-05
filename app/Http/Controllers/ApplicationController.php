@@ -6,6 +6,7 @@ use Inertia\Inertia;
 use App\Models\Application;
 use Illuminate\Http\Request;
 use App\Http\Requests\StoreApplicationRequest;
+use App\Http\Requests\UpdateApplicationRequest;
 
 class ApplicationController extends Controller
 {
@@ -19,7 +20,7 @@ class ApplicationController extends Controller
             'apps' => $apps,
             'routes' => [
                 'create' => route('applications.create'),
-                'edit' => route('applications.edit', ['application' => '__id__']),
+                'edit' => route('applications.edit', ['application' => ':id']),
             ],
         ]);
     }
@@ -72,24 +73,38 @@ class ApplicationController extends Controller
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(string $id)
+    public function edit(Application $application)
     {
-        //
+        return Inertia::render('Applications/Edit', [
+            'application' => $application,
+            'options' => [
+                'countries' => ['Thailand', 'Malaysia', 'Pakistan', 'India', 'Singapore'],
+                'visaTypes' => ['Tourist', 'Business', 'Student'],
+                'statuses' => ['new', 'screening', 'submitted', 'decision'],
+            ],
+            'routes' => [
+                'index' => route('applications.index'),
+                'update' => route('applications.update', $application),
+            ],
+        ]);
     }
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, string $id)
+    public function update(UpdateApplicationRequest $request, Application $application)
     {
-        //
+        $application->update($request->validated());
+
+        return redirect()->route('applications.index')->with('success', 'Application updated successfully!');
     }
 
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(string $id)
+    public function destroy(Application $application)
     {
-        //
+        $application->delete();
+        return back()->with('success', 'Application deleted.');
     }
 }
