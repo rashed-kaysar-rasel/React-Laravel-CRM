@@ -1,10 +1,14 @@
 import { Head, Link, router, usePage } from '@inertiajs/react';
+import { useState } from 'react';
 import { type BreadcrumbItem } from '@/types';
 import AppLayout from '@/layouts/app-layout';
 import { Icon } from '@/components/icon';
-import { SquarePen, Trash } from 'lucide-react';
+import { FolderInput, SquarePen, Trash, Trash2 } from 'lucide-react';
 import ConfirmDialog from '@/components/ConfirmDialog';
 import { useConfirm } from '@/hooks/useConfirm';
+import StatusBadge from '@/components/StatusBadge';
+
+type Status = 'new' | 'screening' | 'submitted' | 'decision';
 
 interface Application {
   id: number;
@@ -13,7 +17,7 @@ interface Application {
   country: string;
   visa_type: string;
   travel_date?: string | null;
-  status: string;
+  status: Status;
   created_at: string;
   updated_at: string;
 }
@@ -41,8 +45,12 @@ interface IndexProps {
   routes: {
     create: string;
     edit: string;
+    delete: string;
+    status: string;
   };
 }
+
+const STATUSES: Status[] = ['new', 'screening', 'submitted', 'decision'];
 
 function Pagination({ links }: { links: PaginationLink[] }) {
   if (!links || links.length === 0) return null;
@@ -94,6 +102,22 @@ export default function Index({ apps, routes }: IndexProps) {
   const { props } = usePage();
   const flash = props.flash;
 
+  const [rows, setRows] = useState<Application[]>(apps.data);
+  const setLocalStatus = (id: number, status: Status) => {
+    setRows(prev => prev.map(r => (r.id === id ? { ...r, status } : r)));
+  };
+
+  const changeStatus = (id: number, status: Status) => {
+    // optimistic update
+    const prev = rows.find(r => r.id === id)?.status;
+    setLocalStatus(id, status);
+
+    router.patch(routes.status.replace(':id', String(id)), { status }, {
+      preserveScroll: true,
+      // if server fails, revert local change
+      onError: () => prev && setLocalStatus(id, prev),
+    });
+  };
   const confirm = useConfirm();
 
   const requestDelete = (id: number) => {
@@ -126,12 +150,15 @@ export default function Index({ apps, routes }: IndexProps) {
           </div>
         )}
 
-        <Link
-          href={routes.create}
-          className="px-3 py-2 bg-black text-white rounded"
-        >
-          + New
-        </Link>
+        <div className="flex justify-between items-center mb-4">
+          <div></div>
+          <Link
+            href={routes.create}
+            className="px-3 py-2 bg-black text-white rounded"
+          >
+            + New
+          </Link>
+        </div>
 
         <div className="mt-4 overflow-x-auto">
           <table className="min-w-full border rounded">
@@ -161,12 +188,23 @@ export default function Index({ apps, routes }: IndexProps) {
                     <td className="px-4 py-2">{app.country}</td>
                     <td className="px-4 py-2">{app.visa_type}</td>
                     <td className="px-4 py-2">{app.travel_date || '-'}</td>
-                    <td className="px-4 py-2">{app.status}</td>
+                    <td className="px-4 py-2">
+                      <select
+                        value={app.status}
+                        onChange={e => changeStatus(app.id, e.target.value as Status)}
+                        className="bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-100 border border-gray-300 dark:border-gray-600 rounded px-2 py-1"
+                      >
+                        {STATUSES.map(s => <option key={s} value={s}>{s}</option>)}
+                      </select>
+                    </td>
                     <td className="px-4 py-2">
                       <div className="flex items-center gap-3">
+                        <Link href={`/applications/${app.id}/documents`} className="text-sm text-gray-700 hover:underline">
+                          <Icon iconNode={FolderInput} className="h-5 w-5" />
+                        </Link>
                         <Link
                           href={routes.edit.replace(':id', app.id.toString())}
-                          className="text-blue-600 hover:underline"
+                          className="text-dark-600 dark:text-white hover:underline"
                         >
                           <Icon iconNode={SquarePen} className="h-5 w-5" />
                         </Link>
@@ -174,7 +212,7 @@ export default function Index({ apps, routes }: IndexProps) {
                           onClick={() => requestDelete(app.id)}
                           className="text-sm text-red-600 hover:underline"
                         >
-                          <Icon iconNode={Trash} className="h-5 w-5" />
+                          <Icon iconNode={Trash2} className="h-5 w-5" />
                         </button>
                       </div>
                     </td>

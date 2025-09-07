@@ -8,5 +8,11 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 class Application extends Model
 {
     use HasFactory;
+
     protected $guarded = [];
+
+    public function documents()
+    {
+        return $this->hasMany(Document::class);
+    }
 }

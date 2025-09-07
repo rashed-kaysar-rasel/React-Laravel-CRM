@@ -7,6 +7,7 @@ use App\Models\Application;
 use Illuminate\Http\Request;
 use App\Http\Requests\StoreApplicationRequest;
 use App\Http\Requests\UpdateApplicationRequest;
+use App\Http\Requests\UpdateApplicationStatusRequest;
 
 class ApplicationController extends Controller
 {
@@ -22,6 +23,7 @@ class ApplicationController extends Controller
                 'create' => route('applications.create'),
                 'edit' => route('applications.edit', ['application' => ':id']),
                 'delete' => route('applications.destroy', ['application' => ':id']),
+                'status' => route('applications.status', ['application' => ':id']),
             ],
         ]);
     }
@@ -98,6 +100,14 @@ class ApplicationController extends Controller
         $application->update($request->validated());
 
         return redirect()->route('applications.index')->with('success', 'Application updated successfully!');
+    }
+
+
+    public function updateStatus(UpdateApplicationStatusRequest $request, Application $application)
+    {
+        $application->update(['status' => $request->validated()['status']]);
+
+        return back()->with('success', 'Status updated.');
     }
 
     /**

@@ -2,6 +2,7 @@
 
 use Inertia\Inertia;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\DocumentController;
 use App\Http\Controllers\ApplicationController;
 
 Route::get('/', function () {
@@ -14,7 +15,16 @@ Route::middleware(['auth', 'verified'])->group(function () {
     })->name('dashboard');
 });
 
-require __DIR__.'/settings.php';
-require __DIR__.'/auth.php';
+require __DIR__ . '/settings.php';
+require __DIR__ . '/auth.php';
 
-Route::resource('applications', ApplicationController::class)->middleware('auth');
+Route::middleware('auth')->group(function () {
+    Route::resource('applications', ApplicationController::class);
+    Route::patch('applications/{application}/status', [ApplicationController::class, 'updateStatus'])
+        ->name('applications.status');
+
+    // Documents nested under applications
+    Route::get('applications/{application}/documents', [DocumentController::class, 'index'])->name('documents.index');
+    Route::post('applications/{application}/documents', [DocumentController::class, 'store'])->name('documents.store');
+    Route::delete('documents/{document}', [DocumentController::class, 'destroy'])->name('documents.destroy');
+});
