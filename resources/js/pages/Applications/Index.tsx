@@ -1,12 +1,11 @@
 import { Head, Link, router, usePage } from '@inertiajs/react';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { type BreadcrumbItem } from '@/types';
 import AppLayout from '@/layouts/app-layout';
 import { Icon } from '@/components/icon';
 import { FolderInput, SquarePen, Trash, Trash2 } from 'lucide-react';
 import ConfirmDialog from '@/components/ConfirmDialog';
 import { useConfirm } from '@/hooks/useConfirm';
-import StatusBadge from '@/components/StatusBadge';
 
 type Status = 'new' | 'screening' | 'submitted' | 'decision';
 
@@ -42,11 +41,14 @@ interface IndexProps {
     error?: string;
   };
   apps: Paginated<Application>;
+  filters: { q?: string; status?: string; country?: string };
+  options: { statuses: Status[]; countries: string[] };
   routes: {
     create: string;
     edit: string;
     delete: string;
     status: string;
+    index: string;
   };
 }
 
@@ -98,9 +100,12 @@ const breadcrumbs: BreadcrumbItem[] = [
   },
 ];
 
-export default function Index({ apps, routes }: IndexProps) {
+export default function Index({ apps, routes, filters, options }: IndexProps) {
   const { props } = usePage();
   const flash = props.flash;
+  const [q, setQ] = useState(filters.q ?? '');
+  const [status, setStatus] = useState(filters.status ?? '');
+  const [country, setCountry] = useState(filters.country ?? '');
 
   const [rows, setRows] = useState<Application[]>(apps.data);
   const setLocalStatus = (id: number, status: Status) => {
@@ -132,11 +137,46 @@ export default function Index({ apps, routes }: IndexProps) {
     });
   };
 
+  // Submit helper
+  const submit = (params?: { replace?: boolean }) => {
+    router.get(routes.index,
+      { q, status, country },
+      {
+        preserveState: true,   // keep component state (so inputs don’t flicker)
+        preserveScroll: true,
+        replace: params?.replace ?? true, // avoid polluting history on every keystroke/filter
+      },
+    );
+  };
+
+  // Optional: small debounce on search typing
+  useEffect(() => {
+    const t = setTimeout(() => {
+      // only auto-fire on q change; status/country fire on change event below
+      if ((filters.q ?? '') !== q) submit({ replace: true });
+    }, 300);
+    return () => clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [q]);
+
+  const clear = () => {
+    setQ('');
+    setStatus('');
+    setCountry('');
+    router.get(routes.index, {}, { preserveState: false, replace: true, preserveScroll: true });
+  };
+
   return (
     <AppLayout breadcrumbs={breadcrumbs}>
       <Head title="Applications" />
       <div className="p-6">
         <h1 className="text-xl font-bold mb-4">Applications</h1>
+
+
+
+        {/* Filters */}
+
+
 
         {/* Flash message */}
         {flash?.success && (
@@ -151,7 +191,47 @@ export default function Index({ apps, routes }: IndexProps) {
         )}
 
         <div className="flex justify-between items-center mb-4">
-          <div></div>
+          <div className="grid gap-2 md:grid-cols-4">
+            <input
+              value={q}
+              onChange={(e) => setQ(e.target.value)}
+              placeholder="Search name, passport, visa..."
+              className="border rounded px-3 py-2"
+            />
+
+            <select
+              value={status}
+              onChange={(e) => { setStatus(e.target.value); }}
+              className="border rounded px-3 py-2 bg-white"
+            >
+              <option value="">All statuses</option>
+              {options.statuses.map(s => <option key={s} value={s}>{s}</option>)}
+            </select>
+
+            <select
+              value={country}
+              onChange={(e) => { setCountry(e.target.value); }}
+              className="border rounded px-3 py-2 bg-white"
+            >
+              <option value="">All countries</option>
+              {options.countries.map(c => <option key={c} value={c}>{c}</option>)}
+            </select>
+
+            <div className="flex gap-2">
+              <button
+                onClick={() => submit()}
+                className="px-3 py-2 border rounded bg-black text-white"
+              >
+                Apply
+              </button>
+              <button
+                onClick={clear}
+                className="px-3 py-2 border rounded"
+              >
+                Clear
+              </button>
+            </div>
+          </div>
           <Link
             href={routes.create}
             className="px-3 py-2 bg-black text-white rounded"

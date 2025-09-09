@@ -22,6 +22,8 @@ Route::middleware('auth')->group(function () {
     Route::resource('applications', ApplicationController::class);
     Route::patch('applications/{application}/status', [ApplicationController::class, 'updateStatus'])
         ->name('applications.status');
+    Route::get('applications/search', [ApplicationController::class, 'search'])
+        ->name('applications.search');
 
     // Documents nested under applications
     Route::get('applications/{application}/documents', [DocumentController::class, 'index'])->name('documents.index');

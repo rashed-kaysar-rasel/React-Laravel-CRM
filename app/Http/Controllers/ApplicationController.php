@@ -14,16 +14,42 @@ class ApplicationController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        $apps = Application::latest()->paginate(10);
+        $q = $request->string('q')->toString();
+        $status = $request->string('status')->toString();
+        $country = $request->string('country')->toString();
+
+        $apps = Application::query()
+            ->when($q, fn($q2) => $q2->where(function ($sub) use ($q) {
+                $sub->where('full_name', 'like', "%{$q}%")
+                    ->orWhere('passport_no', 'like', "%{$q}%")
+                    ->orWhere('visa_type', 'like', "%{$q}%")
+                    ->orWhere('country', 'like', "%{$q}%");
+            }))
+            ->when($status, fn($q2) => $q2->where('status', $status))
+            ->when($country, fn($q2) => $q2->where('country', $country))
+            ->orderByDesc('created_at')
+            ->paginate(10)
+            ->withQueryString();
+
         return Inertia::render('Applications/Index', [
             'apps' => $apps,
+            'filters' => [               // <- ALWAYS present
+                'q' => $q ?? '',
+                'status' => $status ?? '',
+                'country' => $country ?? '',
+            ],
+            'options' => [
+                'statuses' => ['new', 'screening', 'submitted', 'decision'],
+                'countries' => ['Thailand', 'Malaysia', 'Pakistan', 'India', 'Singapore'],
+            ],
             'routes' => [
                 'create' => route('applications.create'),
                 'edit' => route('applications.edit', ['application' => ':id']),
                 'delete' => route('applications.destroy', ['application' => ':id']),
                 'status' => route('applications.status', ['application' => ':id']),
+                'index' => route('applications.index'),
             ],
         ]);
     }
