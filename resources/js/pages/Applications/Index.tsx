@@ -166,29 +166,20 @@ export default function Index({ apps, routes, filters, options }: IndexProps) {
     router.get(routes.index, {}, { preserveState: false, replace: true, preserveScroll: true });
   };
 
+    useEffect(() => {
+    if (flash?.success) {
+      (window as any).addToast(flash.success, 'success');
+    }
+    if (flash?.error) {
+      (window as any).addToast(flash.error, 'error');
+    }
+  }, [flash]);
+
   return (
     <AppLayout breadcrumbs={breadcrumbs}>
       <Head title="Applications" />
       <div className="p-6">
         <h1 className="text-xl font-bold mb-4">Applications</h1>
-
-
-
-        {/* Filters */}
-
-
-
-        {/* Flash message */}
-        {flash?.success && (
-          <div className="mb-4 rounded bg-green-100 text-green-800 px-4 py-2 text-sm">
-            {flash.success}
-          </div>
-        )}
-        {flash?.error && (
-          <div className="mb-4 rounded bg-red-100 text-red-800 px-4 py-2 text-sm">
-            {flash.error}
-          </div>
-        )}
 
         <div className="flex justify-between items-center mb-4">
           <div className="grid gap-2 md:grid-cols-4">
