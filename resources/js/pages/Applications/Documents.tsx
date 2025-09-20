@@ -111,6 +111,14 @@ export default function Documents({ application, documents, routes, limits, flas
         .filter(([key]) => key.startsWith('files.')) // catches files.0, files.1, ...
         .map(([, msg]) => String(msg));
 
+    useEffect(() => {
+        if (flash?.success) {
+            (window as any).addToast(flash.success, 'success');
+        }
+        if (flash?.error) {
+            (window as any).addToast(flash.error, 'error');
+        }
+    }, [flash]);
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Application Documents" />
@@ -119,11 +127,6 @@ export default function Documents({ application, documents, routes, limits, flas
                     <h1 className="text-xl font-semibold">Documents — {application.full_name}</h1>
                     <Link href={routes.index} className="text-sm text-gray-600 hover:underline">Back</Link>
                 </div>
-
-                {/* Flash */}
-                {flash?.success && <div className="mt-3 rounded bg-green-100 text-green-800 px-4 py-2 text-sm">{flash.success}</div>}
-                {flash?.error && <div className="mt-3 rounded bg-red-100 text-red-800 px-4 py-2 text-sm">{flash.error}</div>}
-
                 {/* Upload form */}
                 <form onSubmit={onSubmit} className="mt-6 space-y-4 bg-white p-6 border rounded-lg">
                     <div>
